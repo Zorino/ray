@@ -796,7 +796,7 @@ void SpuriousSeedAnnihilator::call_RAY_SLAVE_MODE_PROCESS_MERGING_ASSETS() {
 // Let's hope we are not breaking anything...
 
 	if(m_mustAdviseRanks) {
-#ifdef CONFIG_A
+#ifdef CONFIG_ASSERT
 		assert(m_rankToAdvise < m_core->getSize());
 #endif
 
