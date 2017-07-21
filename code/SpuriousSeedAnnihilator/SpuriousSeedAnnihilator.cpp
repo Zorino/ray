@@ -788,27 +788,24 @@ void SpuriousSeedAnnihilator::call_RAY_SLAVE_MODE_PROCESS_MERGING_ASSETS() {
 
 	initializeMergingProcess();
 
-	if(m_mustAdviseRanks) {
+// Original code (before july 2017) worked for years but seems to causes issues on the new compute canada clusters.
+// Briefly, when hitting a synchronisation wall,every rank wait for RAY_MESSAGE_TAG_ARBITER_SIGNAL from the arbiter to 
+// continue to the next task (mode).
+// On the new clusters, the arbiter is any rank and was eventually telling itself to continue to the next task before 
+// giving the go signal to every other task. Using sendToAll solves this problem. 
+// Let's hope we are not breaking anything...
 
+	if(m_mustAdviseRanks) {
 #ifdef CONFIG_ASSERT
 		assert(m_rankToAdvise < m_core->getSize());
 #endif
 
-		// reset the reset count
-		// here because we may receive a notification
-		// during the advise session
 		if(m_rankToAdvise == 0) {
 			m_synced = 0;
-		}
-
-		//cout << "Arbiter advises " << m_rankToAdvise << endl;
-		this->m_core->getSwitchMan()->sendEmptyMessage(m_outbox, m_rank, m_rankToAdvise, RAY_MESSAGE_TAG_ARBITER_SIGNAL);
-		m_rankToAdvise ++;
-
-		if(m_rankToAdvise == m_core->getSize()) {
+			// cout << "[DEBUG] Rank " << m_rank << " sending RAY_MESSAGE_TAG_ARBITER_SIGNAL to all using sendToAll()." << endl;
+			this->m_core->getSwitchMan()->sendToAll(m_outbox, m_rank, RAY_MESSAGE_TAG_ARBITER_SIGNAL);
 			m_mustAdviseRanks = false;
-
-			//cout << "[DEBUG] everybody received the arbiter advise" << endl;
+			// cout << "[DEBUG] Rank " << m_rank << " completed the sendToAll() task." << endl;
 		}
 	}
 
