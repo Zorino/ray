@@ -168,9 +168,6 @@ void SeedingData::call_RAY_SLAVE_MODE_START_SEEDING(){
 					verbose=true;
 				}
 
-				// be verbose anyway
-				verbose = true;
-
 				bool ignoreSeeds = m_parameters->hasOption("-ignore-seeds");
 
 				if(firstVertex<firstReverse && !ignoreSeeds){
