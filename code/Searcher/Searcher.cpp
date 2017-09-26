@@ -249,7 +249,7 @@ void Searcher::call_RAY_MASTER_MODE_COUNT_SEARCH_ELEMENTS(){
 	}else if(m_sendCounts && m_ranksSynced == m_parameters->getSize()){
 		if(m_masterDirectoryIterator==m_searchDirectories_size){
 			m_sendCounts=false;
-			
+
 			m_switchMan->sendToAll(m_outbox,m_parameters->getRank(),RAY_MPI_TAG_SEARCH_MASTER_SHARING_DONE);
 		}else if(m_masterFileIterator==(int)m_searchDirectories[m_masterDirectoryIterator].getSize()){
 			m_masterDirectoryIterator++;
@@ -958,7 +958,7 @@ void Searcher::call_RAY_SLAVE_MODE_CONTIG_BIOLOGICAL_ABUNDANCES(){
 		buffer[bufferSize++]=lengthInKmers;
 		buffer[bufferSize++]=m_coloredKmers;
 		buffer[bufferSize++]=mode;
-		
+
 		double*bufferDouble=(double*)(buffer+bufferSize++);
 		bufferDouble[0]=mean;
 
@@ -2031,7 +2031,7 @@ void Searcher::call_RAY_SLAVE_MODE_SEQUENCE_BIOLOGICAL_ABUNDANCES(){
 	
 				// don't dump too many of these distribution
 				// otherwise, it may result in too many files
-	
+
 				dumpDistributions();
 			}
 
@@ -2248,7 +2248,7 @@ void Searcher::call_RAY_SLAVE_MODE_SEQUENCE_BIOLOGICAL_ABUNDANCES(){
 				kmer.unpack(buffer,&bufferPosition);
 
 				int sequencePosition=buffer[bufferPosition++];
-	
+
 				#ifdef CONFIG_CONTIG_IDENTITY_VERBOSE
 				cout<<"sequence position "<<sequencePosition<<endl;
 				#endif
@@ -2294,7 +2294,7 @@ void Searcher::call_RAY_SLAVE_MODE_SEQUENCE_BIOLOGICAL_ABUNDANCES(){
 					bufferPosition++; // skip th total
 
 					if(numberOfPaths>0 && nicelyAssembled && colorsAreUniqueInNamespaces){
-						
+
 						m_coloredAssembledCoverageDistribution[coverage]++;
 						m_coloredAssembledMatches++;
 
@@ -2304,7 +2304,7 @@ void Searcher::call_RAY_SLAVE_MODE_SEQUENCE_BIOLOGICAL_ABUNDANCES(){
 					#ifdef CONFIG_CONTIG_IDENTITY_VERBOSE
 					cout<<"Paths: "<<numberOfPaths<<" total: "<<total<<endl;
 					#endif
-	
+
 					//bool reply=false;
 
 					// this flag will say if we need to send another message
@@ -2322,14 +2322,14 @@ void Searcher::call_RAY_SLAVE_MODE_SEQUENCE_BIOLOGICAL_ABUNDANCES(){
 						#endif
 
 						// don't process the same item twice for the current position
-						if(m_observedPaths.count(sequencePosition)>0 
+						if(m_observedPaths.count(sequencePosition)>0
 							&& m_observedPaths[sequencePosition].count(contigPath)>0){  // a contig path can only be processed once per position<
 
 							#ifdef CONFIG_CONTIG_IDENTITY_VERBOSE
 							cout<<"Skipping because we already used "<<contigPath<<" for position "<<sequencePosition<<endl;
 							#endif
 
-							continue; // 
+							continue; //
 						}
 
 						// a contig position can only be utilised once
@@ -2360,7 +2360,7 @@ void Searcher::call_RAY_SLAVE_MODE_SEQUENCE_BIOLOGICAL_ABUNDANCES(){
 
 						// mark it as utilised for the current sequence position
 						m_observedPaths[sequencePosition].insert(contigPath);
-	
+
 						// we don't care if the vertex is repeated
 						// for now.
 					}
@@ -2439,7 +2439,7 @@ void Searcher::createTrees(){
 	if(m_parameters->getRank()==MASTER_RANK){
 		ostringstream directory6;
 		directory6<<m_parameters->getPrefix()<<"/BiologicalAbundances/_Directories.tsv";
-	
+
 		directoriesFile.open(directory6.str().c_str(),ios_base::app);
 		directoriesFile<<"#Directory	DirectoryName	Files"<<endl;
 	}
@@ -2515,7 +2515,7 @@ void Searcher::createTrees(){
 }
 
 string Searcher::getFileBaseName(int i,int j){
-			
+
 	string*file=m_searchDirectories[i].getFileName(j);
 
 	int theLength=file->length();
@@ -2641,7 +2641,7 @@ void Searcher::showProcessedKmers(){
 	}
 
 	if(m_directoryIterator < m_searchDirectories_size &&
-  		m_fileIterator < m_searchDirectories[m_directoryIterator].getSize()
+		m_fileIterator < m_searchDirectories[m_directoryIterator].getSize()
 		&& m_sequenceIterator < m_searchDirectories[m_directoryIterator].getCount(m_fileIterator)){
 
 		cout<<"Rank "<<m_parameters->getRank()<<" biological abundances ";
@@ -2651,11 +2651,13 @@ void Searcher::showProcessedKmers(){
 		cout<<"/"<<m_searchDirectories[m_directoryIterator].getCount(m_fileIterator)<<"]"<<endl;
 	}
 
+	#ifdef CONFIG_DEBUG_COLORS
 	cout<<"Rank "<<m_parameters->getRank()<<" "<<SLAVE_MODES[m_switchMan->getSlaveMode()]<<" processed files: "<<m_processedFiles<<"/"<<m_filesToProcess<<endl;
 	cout<<"Rank "<<m_parameters->getRank()<<" "<<SLAVE_MODES[m_switchMan->getSlaveMode()]<<" processed sequences in file: "<<m_sequenceIterator<<"/"<<m_sequencesToProcessInFile<<endl;
 	cout<<"Rank "<<m_parameters->getRank()<<" "<<SLAVE_MODES[m_switchMan->getSlaveMode()]<<" total processed sequences: "<<m_processedSequences-1<<"/"<<m_sequencesToProcess<<endl;
 	cout<<"Rank "<<m_parameters->getRank()<<" "<<SLAVE_MODES[m_switchMan->getSlaveMode()]<<" processed k-mers for current sequence: "<<m_numberOfKmers<<"/"<<m_currentLength<<endl;
 	cout<<"Rank "<<m_parameters->getRank()<<" "<<SLAVE_MODES[m_switchMan->getSlaveMode()]<<" total processed k-mers: "<<m_kmersProcessed<<endl;
+	#endif
 
 	m_derivative.addX(m_kmersProcessed);
 
@@ -2663,12 +2665,9 @@ void Searcher::showProcessedKmers(){
 	m_derivative.printStatus(SLAVE_MODES[m_switchMan->getSlaveMode()],
 			m_switchMan->getSlaveMode());
 
-	if(m_switchMan->getSlaveMode()==RAY_SLAVE_MODE_ADD_COLORS){
-		
-
-		m_colorSet.printSummary(&cout,false);
-		//m_colorSet.printColors();
-	}
+	// if(m_switchMan->getSlaveMode()==RAY_SLAVE_MODE_ADD_COLORS){
+	// 	m_colorSet.printSummary(&cout,false);
+	// }
 
 	m_lastPrinted=m_kmersProcessed;
 
@@ -2746,7 +2745,7 @@ void Searcher::call_RAY_MPI_TAG_GET_COVERAGE_AND_PATHS(Message*message){
 
 		if(node!=NULL){
 			coverage=node->getCoverage(&vertex);
-			
+
 			#ifdef CONFIG_CONTIG_IDENTITY_VERBOSE
 			cout<<"Not NULL, coverage= "<<coverage<<endl;
 			#endif
@@ -2866,7 +2865,7 @@ void Searcher::call_RAY_MPI_TAG_GET_COVERAGE_AND_PATHS(Message*message){
 				message2[outputBufferPosition++]=strand;
 
 				processed++;
-				
+
 				pathIndex++;
 
 				// we just don't send them all because
@@ -2875,7 +2874,7 @@ void Searcher::call_RAY_MPI_TAG_GET_COVERAGE_AND_PATHS(Message*message){
 					break;
 
 			}
-	
+
 			message2[positionForCount]=processed;
 			message2[positionForIndex]=pathIndex;
 			message2[positionForTotal]=paths.size();
@@ -2897,7 +2896,7 @@ void Searcher::call_RAY_MPI_TAG_GET_COVERAGE_AND_PATHS(Message*message){
 
 void Searcher::call_RAY_MPI_TAG_ADD_KMER_COLOR(Message*message){
 	// add the color
-	
+
 	#ifdef CONFIG_DEBUG_COLORS
 	cout<<"Sending reply to "<<message->getSource()<<" slaveMode= "<<SLAVE_MODES[m_switchMan->getSlaveMode()]<<endl;
 	#endif
@@ -2964,7 +2963,7 @@ void Searcher::addColorToKmer(Vertex*node,PhysicalKmerColor color){
 
 	// maybe this color was purged..
 	//assert(m_colorSet.getNumberOfPhysicalColors(virtualColorHandle)+1 == m_colorSet.getNumberOfPhysicalColors(newVirtualColor));
-	
+
 	assert(m_colorSet.getNumberOfReferences(newVirtualColor)>=1);
 	assert(m_colorSet.getNumberOfReferences(virtualColorHandle)>=0);
 	#endif
@@ -3118,8 +3117,8 @@ void Searcher::call_RAY_SLAVE_MODE_ADD_COLORS(){
 		#endif
 
 	// all directories were processed
-	}else if(m_directoryIterator==m_searchDirectories_size && !m_locallyFinishedColoring){
-	
+	} else if(m_directoryIterator==m_searchDirectories_size && !m_locallyFinishedColoring){
+
 		showProcessedKmers();
 
 		m_bufferedData.showStatistics(m_parameters->getRank());
@@ -3182,7 +3181,7 @@ void Searcher::call_RAY_SLAVE_MODE_ADD_COLORS(){
 
 	// all files in a directory were processed
 	}else if(m_fileIterator==(int)m_searchDirectories[m_directoryIterator].getSize()){
-	
+
 		cout<<"Rank "<<m_parameters->getRank()<<" has colored its entries from "<<m_directoryNames[m_directoryIterator]<<endl;
 		cout<<endl;
 
@@ -3196,7 +3195,7 @@ void Searcher::call_RAY_SLAVE_MODE_ADD_COLORS(){
 	}else if(!isFileOwner(m_globalFileIterator)){
 
 		m_globalSequenceIterator+=m_searchDirectories[m_directoryIterator].getCount(m_fileIterator);
-		
+
 		showProcessedKmers();
 
 		// skip the file
@@ -3219,8 +3218,8 @@ void Searcher::call_RAY_SLAVE_MODE_ADD_COLORS(){
 
 		// we processed all the k-mers
 		// now we need to flush the remaining half-full buffers
-		// this section is now used if 
-		// force=true 
+		// this section is now used if
+		// force=true
 		// in the above code
 		}else if(!m_bufferedData.isEmpty()){
 
@@ -3256,7 +3255,7 @@ void Searcher::call_RAY_SLAVE_MODE_ADD_COLORS(){
 	// start a sequence
 	}else if(!m_createdSequenceReader){
 		// initiate the reader I guess
-	
+
 		#ifdef CONFIG_DEBUG_COLORS
 		cout<<"Creating sequence reader."<<endl;
 		#endif
@@ -3268,7 +3267,7 @@ void Searcher::call_RAY_SLAVE_MODE_ADD_COLORS(){
 		m_numberOfKmers=0;
 		m_createdSequenceReader=true;
 
-		// check if we need to color the graph 
+		// check if we need to color the graph
 		// for this sequence...
 
 		m_mustAddColors=true;
@@ -3325,7 +3324,7 @@ void Searcher::call_RAY_SLAVE_MODE_ADD_COLORS(){
 
 		// the current sequence has been processed
 		if( !m_searchDirectories[m_directoryIterator].hasNextKmer(m_kmerLength)){
-			
+
 
 			#ifdef CONFIG_ASSERT
 			assert(m_directoryIterator<m_searchDirectories_size);
@@ -3344,7 +3343,7 @@ void Searcher::call_RAY_SLAVE_MODE_ADD_COLORS(){
 		// pull data from the sequence
 		// and throw messages onto the network
 		}else if(m_pendingMessages==0 ){
-	
+
 			bool force=CONFIG_FORCE_VALUE_FOR_MAXIMUM_SPEED;
 
 			// pull k-mers from the sequence and fill buffers
@@ -3530,7 +3529,7 @@ void Searcher::call_RAY_MPI_TAG_WRITE_SEQUENCE_ABUNDANCE_ENTRY(Message*message){
 		m_arrayOfFiles_Buffer[directoryIterator]=new ostringstream;
 
 		// create tsv file too
-	
+
 		ostringstream fileName_tsv;
 		fileName_tsv<<m_parameters->getPrefix()<<"/BiologicalAbundances/";
 		fileName_tsv<<"0.Profile."<<baseName<<".tsv";
@@ -3546,14 +3545,14 @@ void Searcher::call_RAY_MPI_TAG_WRITE_SEQUENCE_ABUNDANCE_ENTRY(Message*message){
 		m_activeFiles++;
 
 		#ifdef CONFIG_ASSERT
-		assert(m_activeFiles>=1); 
+		assert(m_activeFiles>=1);
 		#endif
 
 		ostringstream content88;
 		content88<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<<endl;
 
 		content88<<"<root><sample>"<<m_parameters->getSampleName()<<"</sample><searchDirectory>"<<baseName<<"</searchDirectory>"<<endl;
-	
+
 		content88<<"<totalAssembledKmerObservations>"<<m_totalNumberOfAssembledKmerObservations;
 		content88<<"</totalAssembledKmerObservations>"<<endl;
 		content88<<"<totalAssembledKmers>"<<m_totalNumberOfAssembledKmers;
@@ -3571,7 +3570,7 @@ void Searcher::call_RAY_MPI_TAG_WRITE_SEQUENCE_ABUNDANCE_ENTRY(Message*message){
 		content88<<"</totalAssembledColoredKmerObservations>"<<endl;
 		content88<<"<totalAssembledColoredKmers>"<<m_totalNumberOfAssembledColoredKmers;
 		content88<<"</totalAssembledColoredKmers>"<<endl;
-		
+
 
 
 
@@ -3852,7 +3851,7 @@ void Searcher::flushSequenceAbundanceXMLBuffer(int directoryIterator,bool force)
 	assert(m_arrayOfFiles_Buffer.count(directoryIterator)>0);
 	assert(m_arrayOfFiles.count(directoryIterator)>0);
 	#endif
-	
+
 	if(flushFileOperationBuffer_FILE(force,(m_arrayOfFiles_Buffer[directoryIterator]),
 		m_arrayOfFiles[directoryIterator],CONFIG_FILE_IO_BUFFER_SIZE)){
 
@@ -3869,7 +3868,7 @@ void Searcher::flushContigIdentificationBuffer(int directoryIterator,bool force)
 	assert(m_identificationFiles.count(directoryIterator)>0);
 	assert(m_identificationFiles_Buffer.count(directoryIterator)>0);
 	#endif
-	
+
 	if(flushFileOperationBuffer_FILE(force,(m_identificationFiles_Buffer[directoryIterator]),
 		m_identificationFiles[directoryIterator],CONFIG_FILE_IO_BUFFER_SIZE)){
 
@@ -3915,7 +3914,7 @@ void Searcher::call_RAY_MPI_TAG_VIRTUAL_COLOR_DATA(Message*message){
  * The positions from position up to count-1 are the actual
  * physical colors.
  */
-	
+
 
 		#ifdef CONFIG_COLORED_GRAPH_DEBUG
 		cout<<"[call_RAY_MPI_TAG_VIRTUAL_COLOR_DATA] source: "<<source;
@@ -3924,7 +3923,7 @@ void Searcher::call_RAY_MPI_TAG_VIRTUAL_COLOR_DATA(Message*message){
 		#endif /* CONFIG_COLORED_GRAPH_DEBUG */
 
 		set<PhysicalKmerColor> coloredBits;
-	
+
 		for(int i=0;i<physicalColors;i++){
 			PhysicalKmerColor color=buffer[position+i];
 
@@ -3936,7 +3935,7 @@ void Searcher::call_RAY_MPI_TAG_VIRTUAL_COLOR_DATA(Message*message){
 
 			coloredBits.insert(color);
 		}
-	
+
 		VirtualKmerColorHandle globalColor=m_masterColorSet.findVirtualColor(&coloredBits);
 
 		for(uint64_t i=0;i<references;i++){
@@ -4076,7 +4075,7 @@ void Searcher::generateSummaryOfColoredDeBruijnGraph(){
 			f1<<"<physicalColors>";
 			for(set<PhysicalKmerColor>::iterator j=i->second.begin();
 				j!=i->second.end();++j){
-	
+
 				PhysicalKmerColor color=*j;
 				f1<<" "<<color;
 			}
@@ -4096,15 +4095,12 @@ void Searcher::generateSummaryOfColoredDeBruijnGraph(){
 }
 
 void Searcher::call_RAY_MPI_TAG_VIRTUAL_COLOR_DATA_REPLY(Message*message){
-
 	m_messageReceived=true;
 }
 
 void Searcher::flushCoverageXMLBuffer(bool force){
-	
 	if(flushFileOperationBuffer(force,&m_currentCoverageFile_Buffer,
 		&m_currentCoverageFile,CONFIG_FILE_IO_BUFFER_SIZE)){
-		
 		m_coverageXMLflushOperations++;
 	}
 }

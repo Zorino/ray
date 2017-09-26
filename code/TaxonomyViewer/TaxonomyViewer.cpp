@@ -57,9 +57,9 @@ void TaxonomyViewer::call_RAY_MASTER_MODE_PHYLOGENY_MAIN(){
 
 		Message*message=m_inbox->at(0);
 		call_RAY_MPI_TAG_TAXON_OBSERVATIONS(message);
-	
+
 	}else if(m_inbox->hasMessage(RAY_MPI_TAG_LOADED_TAXONS)){
-		
+
 		m_ranksThatLoadedTaxons++;
 
 		#ifdef CONFIG_ASSERT
@@ -67,7 +67,7 @@ void TaxonomyViewer::call_RAY_MASTER_MODE_PHYLOGENY_MAIN(){
 		#endif
 
 		#ifdef DEBUG_PHYLOGENY
-		cout<<"[phylogeny] m_ranksThatLoadedTaxons -> "<<m_ranksThatLoadedTaxons<<endl;
+		cout<<"[phylogeny] [taxon] m_ranksThatLoadedTaxons -> "<<m_ranksThatLoadedTaxons<<endl;
 		#endif
 
 		if(m_ranksThatLoadedTaxons==m_size){
@@ -99,7 +99,7 @@ void TaxonomyViewer::call_RAY_MASTER_MODE_PHYLOGENY_MAIN(){
 		m_taxonObservations=m_taxonObservationsMaster;
 
 		//cout<<"Global observations"<<endl;
-	
+
 		//showObservations(&cout);
 
 		ostringstream hitFile;
@@ -158,7 +158,7 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 		extractColorsForPhylogeny();
 
 	}else if(!m_loadedTaxonsForPhylogeny){
-	
+
 		loadTaxons();
 
 	}else if(!m_sentTaxonsToMaster){
@@ -166,7 +166,7 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 		sendTaxonsToMaster();
 
 	}else if(!m_sentTaxonControlMessage){
-		
+
 		#ifdef DEBUG_PHYLOGENY
 		cout<<"Sending control message"<<endl;
 		#endif
@@ -177,9 +177,9 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 		m_sentTaxonControlMessage=true;
 
 		m_synced=false;
-	
+
 	}else if(m_inbox->hasMessage(RAY_MPI_TAG_SYNCED_TAXONS)){
-	
+
 		copyTaxonsFromSecondaryTable();
 
 		cout<<"Rank "<<m_rank<<" has "<<m_taxonsForPhylogeny.size()<<" taxons after syncing with master"<<endl;
@@ -192,13 +192,13 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 	}else if(!m_loadedTree){
 
 		loadTree();
-	
+
 	}else if(!m_gatheredObservations){
-	
+
 		gatherKmerObservations();
 
 	}else if(!m_syncedTree){
-		
+
 		sendTreeCounts();
 
 	}else if(m_outbox->size()==0){
@@ -214,7 +214,7 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 
 void TaxonomyViewer::sendTreeCounts(){
 	if(m_messageReceived && m_countIterator==m_taxonObservations.end()){
-	
+
 		m_syncedTree=true;
 
 	}else if(!m_messageSent){
@@ -244,7 +244,7 @@ void TaxonomyViewer::sendTreeCounts(){
 			buffer[bufferPosition++]=count;
 			m_countIterator++;
 		}
-		
+
 		#ifdef CONFIG_ASSERT
 		assert(bufferPosition!=0);
 		#endif
@@ -305,7 +305,7 @@ void TaxonomyViewer::call_RAY_MPI_TAG_TOUCH_TAXON(Message*message){
 }
 
 void TaxonomyViewer::loadTree(){
-	
+
 	if(!m_parameters->hasOption("-with-taxonomy")){
 		m_loadedTree=true;
 
@@ -333,7 +333,7 @@ void TaxonomyViewer::loadTree(){
 
 			TaxonIdentifier parent;
 			TaxonIdentifier child;
-	
+
 			loader.getNext(&parent,&child);
 
 			if(parent==child && taxonsWithWarning.count(parent) == 0){
@@ -445,16 +445,16 @@ void TaxonomyViewer::gatherKmerObservations(){
 			j!=physicalColors->end();j++){
 
 			PhysicalKmerColor physicalColor=*j;
-	
+
 			PhysicalKmerColor nameSpace=physicalColor/COLOR_NAMESPACE_MULTIPLIER;
-		
+
 			// associated with -with-taxonomy
 			if(nameSpace==COLOR_NAMESPACE_PHYLOGENY){
 				PhysicalKmerColor colorForPhylogeny=physicalColor % COLOR_NAMESPACE_MULTIPLIER;
 
 				#ifdef CONFIG_ASSERT
 				if(m_colorsForPhylogeny.count(colorForPhylogeny)==0){
-					//cout<<"Error: color "<<colorForPhylogeny<<" should be in m_colorsForPhylogeny which contains "<<m_colorsForPhylogeny.size()<<endl;
+					cout<<"Error: color "<<colorForPhylogeny<<" should be in m_colorsForPhylogeny which contains "<<m_colorsForPhylogeny.size()<<endl;
 				}
 				#endif
 
@@ -702,7 +702,7 @@ void TaxonomyViewer::showObservations_XML(ostream*stream){
 		}
 
 		operationBuffer<<"<coloredProportionInRank>"<<coloredRatioInRank<<"</coloredProportionInRank>";
-		
+
 		operationBuffer<<"</recursive>"<<endl;
 
 		operationBuffer<<"</entry>"<<endl;
@@ -716,7 +716,7 @@ void TaxonomyViewer::showObservations_XML(ostream*stream){
 			ostringstream theFile;
 			theFile<<m_parameters->getPrefix()<<"/BiologicalAbundances/";
 			theFile<<"0.Profile.TaxonomyRank="<<rank<<".tsv";
-	
+
 			string tsvFile=theFile.str();
 			tsvFiles[rank]=fopen(tsvFile.c_str(),"a");
 
@@ -738,7 +738,7 @@ void TaxonomyViewer::showObservations_XML(ostream*stream){
 
 	// close tsv files
 	for(map<string,FILE*>::iterator i=tsvFiles.begin();i!=tsvFiles.end();i++){
-	
+
 		string rank=i->first;
 		FILE*file=i->second;
 
@@ -772,7 +772,7 @@ LargeCount TaxonomyViewer::getRecursiveCount(TaxonIdentifier taxon){
 	if(m_treeChildren.count(taxon)>0){
 		for(set<TaxonIdentifier>::iterator i=m_treeChildren[taxon].begin();
 			i!=m_treeChildren[taxon].end();i++){
-			
+
 			TaxonIdentifier child=*i;
 
 			count+=getRecursiveCount(child);
@@ -1063,8 +1063,6 @@ string TaxonomyViewer::getTaxonRank(TaxonIdentifier taxon){
 
 void TaxonomyViewer::printTaxonPath(TaxonIdentifier taxon,vector<TaxonIdentifier>*path,ostream*stream){
 
-	//cout<<"Taxon= "<<taxon<<endl;
-
 	for(int i=0;i<(int)path->size();i++){
 
 		TaxonIdentifier taxon=(*path)[i];
@@ -1130,7 +1128,7 @@ void TaxonomyViewer::loadTaxons(){
 	genomeToTaxonUnit.load(genomeToTaxonFile);
 
 	while(genomeToTaxonUnit.hasNext()){
-	
+
 		GenomeIdentifier genome;
 		TaxonIdentifier taxon;
 
@@ -1138,7 +1136,6 @@ void TaxonomyViewer::loadTaxons(){
 
 		if(m_colorsForPhylogeny.count(genome)>0){
 			m_taxonsForPhylogeny.insert(taxon);
-			
 			m_genomeToTaxon[genome]=taxon;
 		}
 	}
@@ -1182,7 +1179,7 @@ void TaxonomyViewer::sendTaxonsFromMaster(){
 			bufferPosition++;
 			m_taxonIterator++;
 		}
-		
+
 		#ifdef CONFIG_ASSERT
 		assert(bufferPosition!=0);
 		#endif
@@ -1197,7 +1194,6 @@ void TaxonomyViewer::sendTaxonsFromMaster(){
 		m_responses++;
 
 		if(m_responses==m_size){
-	
 			m_messageSent=false;
 		}
 	}
@@ -1210,7 +1206,6 @@ void TaxonomyViewer::sendTaxonsToMaster(){
 	if(m_messageReceived && m_taxonIterator==m_taxonsForPhylogeny.end()){
 
 		m_sentTaxonsToMaster=true;
-	
 		m_sentTaxonControlMessage=false;
 
 	}else if(!m_messageSent){
@@ -1231,7 +1226,7 @@ void TaxonomyViewer::sendTaxonsToMaster(){
 			bufferPosition++;
 			m_taxonIterator++;
 		}
-		
+
 		#ifdef CONFIG_ASSERT
 		assert(bufferPosition!=0);
 		#endif
