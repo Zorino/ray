@@ -26,7 +26,7 @@ NAME = Distributed Pumpkin
 MPICXX = mpicxx
 
 # CXXFLAGS can be changed by the end user with make CXXFLAGS="..."
-CXXFLAGS = -O3 -std=c++98 -Wall -g
+CXXFLAGS = -O3 -std=c++11 -Wall -g
 
 RM = rm
 CD = cd
@@ -181,7 +181,7 @@ showOptions:
 	$(Q)echo LDFLAGS = $(LDFLAGS)
 	$(Q)echo ""
 	$(Q)touch showOptions
-	
+
 # how to make Ray
 Ray: code/application_core/ray_main.o libRay.a libRayPlatform.a
 	$(Q)$(ECHO) "  LD $@"
