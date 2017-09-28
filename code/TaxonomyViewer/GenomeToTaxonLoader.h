@@ -39,7 +39,7 @@ using namespace std;
  * \author Sébastien Boisvert
  */
 class GenomeToTaxonLoader{
-	
+
 	ifstream m_stream;
 
 	int STEPPING;
