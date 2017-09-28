@@ -123,7 +123,7 @@ void SearchDirectory::countEntriesInFile(int fileNumber){
 	#endif
 
 	char line[10000];
-	
+
 	if(!f){
 		cout<<"Error, cannot open "<<file.str()<<endl;
 		f.close();
@@ -152,7 +152,7 @@ int SearchDirectory::getSize(){
 }
 
 void SearchDirectory::setCount(int file,int count){
-	
+
 	#ifdef CONFIG_ASSERT
 	int current=m_counts[file];
 	if(current!=0){
@@ -209,7 +209,7 @@ void SearchDirectory::createSequenceReader(int file,int sequence,int kmerLength)
 
 		m_currentFileStream=fopen(fileName.str().c_str(),"r");
 		m_currentFile=file;
-	
+
 		// we set it to -1 to be able to pick up 0
 		m_currentSequence=-1;// start at the beginning
 
@@ -304,7 +304,7 @@ void SearchDirectory::readLineFromFile(char*line,int length){
 
 		return;
 	}
-	
+
 	#ifdef CONFIG_ASSERT
 	assert(strlen(m_bufferedLine)==0);
 	assert(!m_hasBufferedLine);
@@ -320,7 +320,7 @@ void SearchDirectory::readLineFromFile(char*line,int length){
 	fgets(line,length,m_currentFileStream);
 
 	// remove the new line symbol, if any
-	
+
 	if(line[strlen(line)-1]=='\n'){
 		line[strlen(line)-1]='\0';
 	}
@@ -530,12 +530,12 @@ void SearchDirectory::loadSomeSequence(){
 	char newContent[CONFIG_COLORED_LINE_MAX_LENGTH];
 	int contentPosition=0;
 	strcpy(newContent,"");
-	
+
 	// copy old content
-	// discard already processed content -- the bytes 
+	// discard already processed content -- the bytes
 	// before m_currentSequencePosition that is
 	//cout<<"code 203"<<endl;
-	
+
 	int theLength=strlen(m_currentSequenceBuffer);
 
 	while(m_currentSequencePosition<theLength){
