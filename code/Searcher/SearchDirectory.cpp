@@ -638,62 +638,65 @@ bool SearchDirectory::hasCurrentSequenceIdentifier(){
 }
 
 PhysicalKmerColor SearchDirectory::getCurrentSequenceIdentifier(){
-    //int count=0;
-    int i=0;
-    string content;
-    string currentSequenceHeader=m_currentSequenceHeader;
-    //if the old NCBI files are used :
-    if (currentSequenceHeader.find(">gi|") != string::npos ) {
-        int count = 0;
-        int j = 0;
-        while (i < (int) currentSequenceHeader.length() && count < 4) {
-            if (currentSequenceHeader[i] == '|'){
-                count++;
-                if (count == 3) j = i;
-                }
-            i++;
-        }
-        if (count != 4)
-            return DUMMY_IDENTIFIER; // return a dummy identifier
-        content = currentSequenceHeader.substr(j + 1, i - j - 2);
-    }
-    //if the new NCBI files are used :
-    else {
-        while (i < (int) currentSequenceHeader.length() && currentSequenceHeader[i] != ' ') {
-            i++;
-        }
-        if(i==currentSequenceHeader.length())
-            return DUMMY_IDENTIFIER; // return a dummy identifier
-        content=currentSequenceHeader.substr(1,i-1);
-    }
+
+	//int count=0;
+	int i=0;
+	string content;
+	string currentSequenceHeader=m_currentSequenceHeader;
+
+	//if the old NCBI files are used :
+	if (currentSequenceHeader.find(">gi|") != string::npos ) {
+		int count = 0;
+		int j = 0;
+		while (i < (int) currentSequenceHeader.length() && count < 4) {
+			if (currentSequenceHeader[i] == '|'){
+				count++;
+				if (count == 3) j = i;
+			}
+			i++;
+		}
+		if (count != 4)
+			return DUMMY_IDENTIFIER; // return a dummy identifier
+		content = currentSequenceHeader.substr(j + 1, i - j - 2);
+	}
+	//if the new NCBI files are used :
+	else {
+		while (i < (int) currentSequenceHeader.length() && currentSequenceHeader[i] != ' ') {
+			i++;
+		}
+		if(i==currentSequenceHeader.length())
+			return DUMMY_IDENTIFIER; // return a dummy identifier
+		content=currentSequenceHeader.substr(1,i-1);
+	}
 
 
-    // >gi|1234|
-    // 0123456789
-    //
-    // 9-3-2 = 4
-    //
-    // >NZ_G49.1
-    // 0123456789
+	// >gi|1234|
+	// 0123456789
+	//
+	// 9-3-2 = 4
+	//
+	// >NZ_G49.1
+	// 0123456789
 
-    //std::cout << "found the indentifier : " << content << " in the header " ;
-    PhysicalKmerColor identifier=0;
+	//std::cout << "found the indentifier : " << content << " in the header " ;
+	PhysicalKmerColor identifier=0;
 
-    // maximum value for a uint64_t:
-    // 18446744073709551615
-    // xxxx000yyyyyyyyyyyyy
-    //    10000000000000000
-    // xxxx0000000000000000
-    //     000yyyyyyyyyyyyy
+	// maximum value for a uint64_t:
+	// 18446744073709551615
+	// xxxx000yyyyyyyyyyyyy
+	//	10000000000000000
+	// xxxx0000000000000000
+	//	 000yyyyyyyyyyyyy
 
-    //sdbm algorithm implementation http://www.cse.yorku.ca/~oz/hash.html
+	//sdbm algorithm implementation http://www.cse.yorku.ca/~oz/hash.html
 	for (string::const_iterator it = content.begin();it!=content.end();++it){
 		identifier = ((int) *it) + (identifier << 6)  + (identifier << 16) - identifier ;
 	}
 
-    //remove the fist 4 digit from the left for the namespace
-    identifier = identifier - ((identifier/COLOR_NAMESPACE_MULTIPLIER)*COLOR_NAMESPACE_MULTIPLIER);
-    return identifier;
+	//remove the fist 4 digit from the left for the namespace
+	identifier = identifier - ((identifier/COLOR_NAMESPACE_MULTIPLIER)*COLOR_NAMESPACE_MULTIPLIER);
+
+	return identifier;
 }
 
 bool SearchDirectory::hasDirectory(int file){
@@ -717,7 +720,7 @@ string SearchDirectory::filterName(string a){
 /* 
  * >EMBL_CDS:CBW26015 CBW26015.1 */
 bool SearchDirectory::hasIdentifier_EMBL_CDS(){
-	
+
 	string currentSequenceHeader=m_currentSequenceHeader;
 
 	if(currentSequenceHeader.find(">EMBL_CDS:") == 0){
