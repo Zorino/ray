@@ -123,7 +123,7 @@ void SearchDirectory::countEntriesInFile(int fileNumber){
 	#endif
 
 	char line[10000];
-	
+
 	if(!f){
 		cout<<"Error, cannot open "<<file.str()<<endl;
 		f.close();
@@ -152,7 +152,7 @@ int SearchDirectory::getSize(){
 }
 
 void SearchDirectory::setCount(int file,int count){
-	
+
 	#ifdef CONFIG_ASSERT
 	int current=m_counts[file];
 	if(current!=0){
@@ -209,7 +209,7 @@ void SearchDirectory::createSequenceReader(int file,int sequence,int kmerLength)
 
 		m_currentFileStream=fopen(fileName.str().c_str(),"r");
 		m_currentFile=file;
-	
+
 		// we set it to -1 to be able to pick up 0
 		m_currentSequence=-1;// start at the beginning
 
@@ -229,16 +229,16 @@ void SearchDirectory::createSequenceReader(int file,int sequence,int kmerLength)
 	if(m_currentSequence>=sequence){
 		cout<<"m_currentSequence: "<<m_currentSequence<<" sequence: "<<sequence<<endl;
 	}
-	
+
 	// be need to be at least before the one we want to 
 	// pick it up
 	assert(m_currentSequence < sequence);
 	#endif
 
 	// here we want to advance to the sequence 
-	
+
 	while(m_currentSequence<sequence && !feof(m_currentFileStream)){
-		
+
 		char line[CONFIG_COLORED_LINE_MAX_LENGTH];
 		strcpy(line,"");
 
@@ -304,7 +304,7 @@ void SearchDirectory::readLineFromFile(char*line,int length){
 
 		return;
 	}
-	
+
 	#ifdef CONFIG_ASSERT
 	assert(strlen(m_bufferedLine)==0);
 	assert(!m_hasBufferedLine);
@@ -320,7 +320,7 @@ void SearchDirectory::readLineFromFile(char*line,int length){
 	fgets(line,length,m_currentFileStream);
 
 	// remove the new line symbol, if any
-	
+
 	if(line[strlen(line)-1]=='\n'){
 		line[strlen(line)-1]='\0';
 	}
@@ -530,12 +530,12 @@ void SearchDirectory::loadSomeSequence(){
 	char newContent[CONFIG_COLORED_LINE_MAX_LENGTH];
 	int contentPosition=0;
 	strcpy(newContent,"");
-	
+
 	// copy old content
-	// discard already processed content -- the bytes 
+	// discard already processed content -- the bytes
 	// before m_currentSequencePosition that is
 	//cout<<"code 203"<<endl;
-	
+
 	int theLength=strlen(m_currentSequenceBuffer);
 
 	while(m_currentSequencePosition<theLength){
@@ -626,57 +626,75 @@ bool SearchDirectory::hasCurrentSequenceIdentifier(){
 
 	string currentSequenceHeader=m_currentSequenceHeader;
 
-	//cout<<"Identifier= "<<m_currentSequenceHeader<<endl;
 
-	// this means that the sequences are not genome sequences
-	// but are genes or something like that.
-	//if(m_currentSequenceHeader.find("|:") != string::npos){
-		//cout<<"Contains '|:'"<<endl;
 
-		//return false;
-	//}
-
-	if(currentSequenceHeader.find(">gi|") == string::npos)
+	if(currentSequenceHeader.find(">") == string::npos)
 		return false;
 
-	if(currentSequenceHeader.find(">gi|")==0)
+	if(currentSequenceHeader.find(">")==0)
 		return true;
 
 	return false;
 }
 
 PhysicalKmerColor SearchDirectory::getCurrentSequenceIdentifier(){
-	int count=0;
-	int i=0;
 
+	//int count=0;
+	int i=0;
+	string content;
 	string currentSequenceHeader=m_currentSequenceHeader;
 
-	while(i<(int)currentSequenceHeader.length() && count<2){
-		if(currentSequenceHeader[i]=='|')
-			count++;
-		
-		
-		i++;
+	//if the old NCBI files are used :
+	if (currentSequenceHeader.find(">gi|") != string::npos ) {
+		int count = 0;
+		int j = 0;
+		while (i < (int) currentSequenceHeader.length() && count < 4) {
+			if (currentSequenceHeader[i] == '|'){
+				count++;
+				if (count == 3) j = i;
+			}
+			i++;
+		}
+		if (count != 4)
+			return DUMMY_IDENTIFIER; // return a dummy identifier
+		content = currentSequenceHeader.substr(j + 1, i - j - 2);
+	}
+	//if the new NCBI files are used :
+	else {
+		while (i < (int) currentSequenceHeader.length() && currentSequenceHeader[i] != ' ') {
+			i++;
+		}
+		if(i==currentSequenceHeader.length())
+			return DUMMY_IDENTIFIER; // return a dummy identifier
+		content=currentSequenceHeader.substr(1,i-1);
 	}
 
-	if(count!=2){
-		return DUMMY_IDENTIFIER; // return a dummy identifier
-	}
 
 	// >gi|1234|
-	//
 	// 0123456789
 	//
-	// 9-4-1 = 4
+	// 9-3-2 = 4
 	//
-	string content=currentSequenceHeader.substr(4,i-4-1);
+	// >NZ_G49.1
+	// 0123456789
 
-	istringstream aStream;
-	aStream.str(content);
+	//std::cout << "found the indentifier : " << content << " in the header " ;
+	PhysicalKmerColor identifier=0;
 
-	PhysicalKmerColor identifier;
+	// maximum value for a uint64_t:
+	// 18446744073709551615
+	// xxxx000yyyyyyyyyyyyy
+	//	10000000000000000
+	// xxxx0000000000000000
+	//	 000yyyyyyyyyyyyy
 
-	aStream>>identifier;
+	//sdbm algorithm implementation http://www.cse.yorku.ca/~oz/hash.html
+	for (string::const_iterator it = content.begin();it!=content.end();++it){
+		identifier = ((int) *it) + (identifier << 6)  + (identifier << 16) - identifier ;
+	}
+
+	//remove the fist 4 digit from the left for the namespace
+	identifier = identifier - ((identifier/COLOR_NAMESPACE_MULTIPLIER)*COLOR_NAMESPACE_MULTIPLIER);
 
 	return identifier;
 }
@@ -702,7 +720,7 @@ string SearchDirectory::filterName(string a){
 /* 
  * >EMBL_CDS:CBW26015 CBW26015.1 */
 bool SearchDirectory::hasIdentifier_EMBL_CDS(){
-	
+
 	string currentSequenceHeader=m_currentSequenceHeader;
 
 	if(currentSequenceHeader.find(">EMBL_CDS:") == 0){

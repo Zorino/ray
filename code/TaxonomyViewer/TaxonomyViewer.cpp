@@ -57,9 +57,9 @@ void TaxonomyViewer::call_RAY_MASTER_MODE_PHYLOGENY_MAIN(){
 
 		Message*message=m_inbox->at(0);
 		call_RAY_MPI_TAG_TAXON_OBSERVATIONS(message);
-	
+
 	}else if(m_inbox->hasMessage(RAY_MPI_TAG_LOADED_TAXONS)){
-		
+
 		m_ranksThatLoadedTaxons++;
 
 		#ifdef CONFIG_ASSERT
@@ -67,7 +67,7 @@ void TaxonomyViewer::call_RAY_MASTER_MODE_PHYLOGENY_MAIN(){
 		#endif
 
 		#ifdef DEBUG_PHYLOGENY
-		cout<<"[phylogeny] m_ranksThatLoadedTaxons -> "<<m_ranksThatLoadedTaxons<<endl;
+		cout<<"[phylogeny] [taxon] m_ranksThatLoadedTaxons -> "<<m_ranksThatLoadedTaxons<<endl;
 		#endif
 
 		if(m_ranksThatLoadedTaxons==m_size){
@@ -99,7 +99,7 @@ void TaxonomyViewer::call_RAY_MASTER_MODE_PHYLOGENY_MAIN(){
 		m_taxonObservations=m_taxonObservationsMaster;
 
 		//cout<<"Global observations"<<endl;
-	
+
 		//showObservations(&cout);
 
 		ostringstream hitFile;
@@ -158,7 +158,7 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 		extractColorsForPhylogeny();
 
 	}else if(!m_loadedTaxonsForPhylogeny){
-	
+
 		loadTaxons();
 
 	}else if(!m_sentTaxonsToMaster){
@@ -166,7 +166,7 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 		sendTaxonsToMaster();
 
 	}else if(!m_sentTaxonControlMessage){
-		
+
 		#ifdef DEBUG_PHYLOGENY
 		cout<<"Sending control message"<<endl;
 		#endif
@@ -177,9 +177,9 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 		m_sentTaxonControlMessage=true;
 
 		m_synced=false;
-	
+
 	}else if(m_inbox->hasMessage(RAY_MPI_TAG_SYNCED_TAXONS)){
-	
+
 		copyTaxonsFromSecondaryTable();
 
 		cout<<"Rank "<<m_rank<<" has "<<m_taxonsForPhylogeny.size()<<" taxons after syncing with master"<<endl;
@@ -192,13 +192,13 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 	}else if(!m_loadedTree){
 
 		loadTree();
-	
+
 	}else if(!m_gatheredObservations){
-	
+
 		gatherKmerObservations();
 
 	}else if(!m_syncedTree){
-		
+
 		sendTreeCounts();
 
 	}else if(m_outbox->size()==0){
@@ -214,7 +214,7 @@ void TaxonomyViewer::call_RAY_SLAVE_MODE_PHYLOGENY_MAIN(){
 
 void TaxonomyViewer::sendTreeCounts(){
 	if(m_messageReceived && m_countIterator==m_taxonObservations.end()){
-	
+
 		m_syncedTree=true;
 
 	}else if(!m_messageSent){
@@ -244,7 +244,7 @@ void TaxonomyViewer::sendTreeCounts(){
 			buffer[bufferPosition++]=count;
 			m_countIterator++;
 		}
-		
+
 		#ifdef CONFIG_ASSERT
 		assert(bufferPosition!=0);
 		#endif
@@ -305,7 +305,7 @@ void TaxonomyViewer::call_RAY_MPI_TAG_TOUCH_TAXON(Message*message){
 }
 
 void TaxonomyViewer::loadTree(){
-	
+
 	if(!m_parameters->hasOption("-with-taxonomy")){
 		m_loadedTree=true;
 
@@ -333,7 +333,7 @@ void TaxonomyViewer::loadTree(){
 
 			TaxonIdentifier parent;
 			TaxonIdentifier child;
-	
+
 			loader.getNext(&parent,&child);
 
 			if(parent==child && taxonsWithWarning.count(parent) == 0){
@@ -344,11 +344,11 @@ void TaxonomyViewer::loadTree(){
 			}
 
 			if((m_loadAllTree || (m_taxonsForPhylogeny.count(child) > 0)) && parent!=child){
-				
+
 				m_taxonsForPhylogeny.insert(parent);
 
 				m_treeChildren[parent].insert(child);
-	
+
 				m_treeParents[child]=parent;
 			}
 		}
@@ -382,8 +382,7 @@ void TaxonomyViewer::gatherKmerObservations(){
 	iterator.constructor(m_subgraph,m_parameters->getWordSize(),m_parameters);
 
 	//* only fetch half of the iterated things because we just need one k-mer
-	// for any pair of reverse-complement k-mers 
-	
+	// for any pair of reverse-complement k-mers
 	int parity=0;
 
 	map<CoverageDepth,LargeCount> frequencies;
@@ -396,7 +395,7 @@ void TaxonomyViewer::gatherKmerObservations(){
 
 		Vertex*node=iterator.next();
 		Kmer key=*(iterator.getKey());
-		
+
 		if(parity==0){
 			parity=1;
 		}else if(parity==1){
@@ -432,7 +431,6 @@ void TaxonomyViewer::gatherKmerObservations(){
 		#endif
 
 		// at this point, we have a nicely assembled k-mer
-		
 		int kmerCoverage=node->getCoverage(&key);
 
 		VirtualKmerColorHandle color=node->getVirtualColor();
@@ -445,16 +443,16 @@ void TaxonomyViewer::gatherKmerObservations(){
 			j!=physicalColors->end();j++){
 
 			PhysicalKmerColor physicalColor=*j;
-	
+
 			PhysicalKmerColor nameSpace=physicalColor/COLOR_NAMESPACE_MULTIPLIER;
-		
+
 			// associated with -with-taxonomy
 			if(nameSpace==COLOR_NAMESPACE_PHYLOGENY){
 				PhysicalKmerColor colorForPhylogeny=physicalColor % COLOR_NAMESPACE_MULTIPLIER;
 
 				#ifdef CONFIG_ASSERT
 				if(m_colorsForPhylogeny.count(colorForPhylogeny)==0){
-					//cout<<"Error: color "<<colorForPhylogeny<<" should be in m_colorsForPhylogeny which contains "<<m_colorsForPhylogeny.size()<<endl;
+					cout<<"Error: color "<<colorForPhylogeny<<" should be in m_colorsForPhylogeny which contains "<<m_colorsForPhylogeny.size()<<endl;
 				}
 				#endif
 
@@ -495,7 +493,7 @@ void TaxonomyViewer::gatherKmerObservations(){
 
 		frequencies[count]++;
 	}
-	
+
 /*
  *
  * TODO: move this in colored operation files
@@ -526,7 +524,7 @@ LargeCount TaxonomyViewer::getSelfCount(TaxonIdentifier taxon){
 	if(m_taxonObservations.count(taxon)==0){
 		return 0;
 	}
-	
+
 	return m_taxonObservations[taxon];
 }
 
@@ -559,7 +557,7 @@ void TaxonomyViewer::showObservations_XML(ostream*stream){
 	ostringstream operationBuffer;
 
 	/* build a mashup for the ranks
- * this will contain total at each level */
+	 * this will contain total at each level */
 
 	map<string,LargeCount> rankRecursiveObservations;
 	map<string,LargeCount> rankSelfObservations;
@@ -702,7 +700,7 @@ void TaxonomyViewer::showObservations_XML(ostream*stream){
 		}
 
 		operationBuffer<<"<coloredProportionInRank>"<<coloredRatioInRank<<"</coloredProportionInRank>";
-		
+
 		operationBuffer<<"</recursive>"<<endl;
 
 		operationBuffer<<"</entry>"<<endl;
@@ -716,7 +714,7 @@ void TaxonomyViewer::showObservations_XML(ostream*stream){
 			ostringstream theFile;
 			theFile<<m_parameters->getPrefix()<<"/BiologicalAbundances/";
 			theFile<<"0.Profile.TaxonomyRank="<<rank<<".tsv";
-	
+
 			string tsvFile=theFile.str();
 			tsvFiles[rank]=fopen(tsvFile.c_str(),"a");
 
@@ -738,7 +736,7 @@ void TaxonomyViewer::showObservations_XML(ostream*stream){
 
 	// close tsv files
 	for(map<string,FILE*>::iterator i=tsvFiles.begin();i!=tsvFiles.end();i++){
-	
+
 		string rank=i->first;
 		FILE*file=i->second;
 
@@ -772,7 +770,7 @@ LargeCount TaxonomyViewer::getRecursiveCount(TaxonIdentifier taxon){
 	if(m_treeChildren.count(taxon)>0){
 		for(set<TaxonIdentifier>::iterator i=m_treeChildren[taxon].begin();
 			i!=m_treeChildren[taxon].end();i++){
-			
+
 			TaxonIdentifier child=*i;
 
 			count+=getRecursiveCount(child);
@@ -827,7 +825,7 @@ void TaxonomyViewer::classifySignal(vector<TaxonIdentifier>*taxons,int kmerCover
 	// case 4.
 	// if there is at least 2 taxons and they don't have the same parent
 	//  but they have a common ancestor
-	
+
 
 
 	if(taxons->size()==0){
@@ -856,7 +854,7 @@ void TaxonomyViewer::classifySignal(vector<TaxonIdentifier>*taxons,int kmerCover
 			TaxonIdentifier taxon=taxons->at(i);
 
 			if(m_treeParents.count(taxon)==0){
-				
+
 				cout<<"Warning: Taxon "<<taxon<<" is not in the tree"<<endl;
 				continue;
 			}
@@ -868,7 +866,7 @@ void TaxonomyViewer::classifySignal(vector<TaxonIdentifier>*taxons,int kmerCover
 		}
 
 		if(parentCount.size()==1){ // only 1 common ancestor, easy
-			
+
 			#ifdef CONFIG_ASSERT
 			if(!(parentCount.begin()->second == found)){
 				cout<<"Error: taxons: "<<taxons->size()<<", parentCount: "<<parentCount.size()<<" 1 element with "<<parentCount.begin()->second<<" taxons"<<endl;
@@ -939,15 +937,15 @@ TaxonIdentifier TaxonomyViewer::findCommonAncestor(vector<TaxonIdentifier>*taxon
 
 			// we found a common ancestor
 			// this is the deepest
-			if(counts[parent]==(int)currentTaxons.size()){ 
+			if(counts[parent]==(int)currentTaxons.size()){
 				return parent;
 			}
-			
+
 			currentTaxons[i]=parent; // update it
 		}
 
 		if(blocked==(int)currentTaxons.size()){ // this will happen if it is not a tree
-			
+
 			cout<<"Error, this is not a tree, blocked: "<<blocked<<" currentTaxons: "<<currentTaxons.size()<<endl;
 			break;
 		}
@@ -996,7 +994,7 @@ void TaxonomyViewer::loadTaxonNames(){
 string TaxonomyViewer::getTaxonName(TaxonIdentifier taxon){
 	if(m_taxonNames.count(taxon)>0){
 		string value=m_taxonNames[taxon];
-		
+
 		for(int i=0;i<(int)value.length();i++){
 
 			char symbol=value[i];
@@ -1063,8 +1061,6 @@ string TaxonomyViewer::getTaxonRank(TaxonIdentifier taxon){
 
 void TaxonomyViewer::printTaxonPath(TaxonIdentifier taxon,vector<TaxonIdentifier>*path,ostream*stream){
 
-	//cout<<"Taxon= "<<taxon<<endl;
-
 	for(int i=0;i<(int)path->size();i++){
 
 		TaxonIdentifier taxon=(*path)[i];
@@ -1086,7 +1082,7 @@ void TaxonomyViewer::getTaxonPathFromRoot(TaxonIdentifier taxon,vector<TaxonIden
 
 	while(m_treeParents.count(current)>0){
 		TaxonIdentifier parent=m_treeParents[current];
-	
+
 		current=parent;
 
 		reversePath.push_back(current);
@@ -1130,7 +1126,7 @@ void TaxonomyViewer::loadTaxons(){
 	genomeToTaxonUnit.load(genomeToTaxonFile);
 
 	while(genomeToTaxonUnit.hasNext()){
-	
+
 		GenomeIdentifier genome;
 		TaxonIdentifier taxon;
 
@@ -1138,7 +1134,6 @@ void TaxonomyViewer::loadTaxons(){
 
 		if(m_colorsForPhylogeny.count(genome)>0){
 			m_taxonsForPhylogeny.insert(taxon);
-			
 			m_genomeToTaxon[genome]=taxon;
 		}
 	}
@@ -1182,7 +1177,7 @@ void TaxonomyViewer::sendTaxonsFromMaster(){
 			bufferPosition++;
 			m_taxonIterator++;
 		}
-		
+
 		#ifdef CONFIG_ASSERT
 		assert(bufferPosition!=0);
 		#endif
@@ -1197,7 +1192,6 @@ void TaxonomyViewer::sendTaxonsFromMaster(){
 		m_responses++;
 
 		if(m_responses==m_size){
-	
 			m_messageSent=false;
 		}
 	}
@@ -1210,7 +1204,6 @@ void TaxonomyViewer::sendTaxonsToMaster(){
 	if(m_messageReceived && m_taxonIterator==m_taxonsForPhylogeny.end()){
 
 		m_sentTaxonsToMaster=true;
-	
 		m_sentTaxonControlMessage=false;
 
 	}else if(!m_messageSent){
@@ -1231,7 +1224,7 @@ void TaxonomyViewer::sendTaxonsToMaster(){
 			bufferPosition++;
 			m_taxonIterator++;
 		}
-		
+
 		#ifdef CONFIG_ASSERT
 		assert(bufferPosition!=0);
 		#endif
@@ -1258,7 +1251,7 @@ void TaxonomyViewer::extractColorsForPhylogeny(){
 
 	//* only fetch half of the iterated things because we just need one k-mer
 	// for any pair of reverse-complement k-mers 
-	
+
 	int parity=0;
 
 	while(iterator.hasNext()){
@@ -1285,9 +1278,9 @@ void TaxonomyViewer::extractColorsForPhylogeny(){
 			j!=physicalColors->end();j++){
 
 			PhysicalKmerColor physicalColor=*j;
-	
+
 			PhysicalKmerColor nameSpace=physicalColor/COLOR_NAMESPACE_MULTIPLIER;
-		
+
 			if(nameSpace==COLOR_NAMESPACE_PHYLOGENY){
 				PhysicalKmerColor colorForPhylogeny=physicalColor % COLOR_NAMESPACE_MULTIPLIER;
 
@@ -1299,7 +1292,7 @@ void TaxonomyViewer::extractColorsForPhylogeny(){
 			}
 		}
 	}
-		
+
 	cout<<"Rank "<<m_rank<<" has exactly "<<m_colorsForPhylogeny.size()<<" k-mer physical colors for the phylogeny."<<endl;
 	cout<<endl;
 

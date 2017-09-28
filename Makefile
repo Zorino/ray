@@ -1,7 +1,7 @@
-VERSION = 2
-PATCHLEVEL = 3
-SUBLEVEL = 2
-EXTRAVERSION = -devel
+VERSION = 3
+PATCHLEVEL = 0
+SUBLEVEL = 1
+EXTRAVERSION = -rc
 NAME = Distributed Pumpkin
 
 # Like in Linux, stuff that must be propagated to
@@ -181,7 +181,7 @@ showOptions:
 	$(Q)echo LDFLAGS = $(LDFLAGS)
 	$(Q)echo ""
 	$(Q)touch showOptions
-	
+
 # how to make Ray
 Ray: code/application_core/ray_main.o libRay.a libRayPlatform.a
 	$(Q)$(ECHO) "  LD $@"

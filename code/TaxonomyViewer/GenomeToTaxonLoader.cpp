@@ -33,14 +33,14 @@ void GenomeToTaxonLoader::load(string file){
 	m_size=0;
 
 	m_stream.open(file.c_str());
-	
+
 	if(!m_stream){
 		cout<<"File "<<file<<" is invalid."<<endl;
 
 		m_stream.close();
 
 	}
-	
+
 	int count=0;
 
 	while(!m_stream.eof()){
@@ -54,10 +54,6 @@ void GenomeToTaxonLoader::load(string file){
 			if(count==2){
 				count=0;
 				m_size++;
-
-				if(m_size % STEPPING == 0){
-					cout<<"GenomeToTaxonLoader::load "<<m_size<<endl;
-				}
 			}
 		}
 
@@ -67,23 +63,28 @@ void GenomeToTaxonLoader::load(string file){
 
 	m_stream.open(file.c_str());
 
-	cout<<"File "<<file<<" has "<<m_size<<" entries"<<endl;
 }
 
 bool GenomeToTaxonLoader::hasNext(){
 	return m_current<m_size;
 }
 
-void GenomeToTaxonLoader::getNext(GenomeIdentifier*genome,TaxonIdentifier*taxon){
+void GenomeToTaxonLoader::getNext(GenomeIdentifier*genome, TaxonIdentifier*taxon){
 
-	if(m_current % STEPPING == 0){
-		cout<<"GenomeToTaxonLoader::getNext "<<m_current<<"/"<<m_size<<endl;
-	}
-
-	GenomeIdentifier loadedGenome;
+	string tmpGenome;
+	GenomeIdentifier loadedGenome=0;
 	TaxonIdentifier loadedTaxon;
 
-	m_stream>>loadedGenome>>loadedTaxon;
+	m_stream>>tmpGenome>>loadedTaxon;
+
+	//sdbm algorithm implementation http://www.cse.yorku.ca/~oz/hash.html
+	for (string::const_iterator it = tmpGenome.begin();it!= tmpGenome.end();++it){
+		loadedGenome = ((int) *it) + (loadedGenome << 6)  + (loadedGenome << 16) - loadedGenome ;
+	}
+
+	loadedGenome = loadedGenome - ((loadedGenome / COLOR_NAMESPACE_MULTIPLIER)*COLOR_NAMESPACE_MULTIPLIER);
+
+	// cout << "genome " << loadedGenome << " linked to taxon " << loadedTaxon << endl;
 
 	(*genome)=loadedGenome;
 	(*taxon)=loadedTaxon;
@@ -93,5 +94,6 @@ void GenomeToTaxonLoader::getNext(GenomeIdentifier*genome,TaxonIdentifier*taxon)
 	if(m_current== m_size){
 		m_stream.close();
 	}
+
 }
 
