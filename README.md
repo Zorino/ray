@@ -207,7 +207,7 @@ with color-space reads. This is an experimental feature.
 
 - Assembler: https://www.ncbi.nlm.nih.gov/pubmed/20958248
 - Profiler: https://www.ncbi.nlm.nih.gov/pubmed/23259615
-- Surveyor: (coming soon)
+- Surveyor: https://www.ncbi.nlm.nih.gov/pubmed/28957508
 
 # Code
 
