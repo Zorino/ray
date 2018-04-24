@@ -143,7 +143,7 @@ void KmerMatrixOwner::dumpKmerMatrixBuffer(Kmer & kmer, vector<char> & samplesWi
 
 	m_kmerMatrix << endl;
 
-	flushFileOperationBuffer(force, &m_kmerMatrix, &m_kmerMatrixFile, CONFIG_FILE_IO_BUFFER_SIZE);
+	flushFileOperationBuffer(force, &m_kmerMatrix, &m_kmerMatrixFile, SURVEYOR_IO_BUFFER_SIZE);
 }
 
 
