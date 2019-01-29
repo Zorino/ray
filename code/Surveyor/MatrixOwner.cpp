@@ -293,6 +293,8 @@ void MatrixOwner::computeDistanceMatrix() {
 
 
 	// normalized matrix
+	
+	/*
 	for(map<SampleIdentifier, map<SampleIdentifier, double> >::iterator row = m_normalizedSimilarityMatrix.begin();
 	    row != m_normalizedSimilarityMatrix.end(); ++row) {
 
@@ -328,8 +330,52 @@ void MatrixOwner::computeDistanceMatrix() {
 			m_normalizedDistanceMatrix[sample2][sample1] = sqrt(inner_product);
 		}
 
+	}*/
+
+	//Distance matrix normalisation re-try.
+	int numberOfSamplesIdentifiers = m_normalizedSimilarityMatrix.size();
+	SampleIdentifier samplesIdentifiers[numberOfSamplesIdentifiers];
+
+	//cout << "m_normalizedSimilarityMatrix Size: " << numberOfSamplesIdentifiers << endl;
+	int x=0;
+	for(map<SampleIdentifier, map<SampleIdentifier, double> >::iterator row = m_normalizedSimilarityMatrix.begin();
+			            row != m_normalizedSimilarityMatrix.end(); ++row) {
+		samplesIdentifiers[x] = row->first;
+		x++;
 	}
 
+	for(unsigned int sampleIndex1 = 0; sampleIndex1 != numberOfSamplesIdentifiers; sampleIndex1++){
+		//cout << "Sample1 ID: " << samplesIdentifiers[sampleIndex1] << endl;
+
+		//Fill v1.
+		double v1[numberOfSamplesIdentifiers];
+		SampleIdentifier sample1 = samplesIdentifiers[sampleIndex1];
+		int y=0;
+		for(map<SampleIdentifier, double>::iterator row = m_normalizedSimilarityMatrix[sample1].begin();
+				row != m_normalizedSimilarityMatrix[sample1].end(); row++){
+			v1[y] = double(row->second);
+			y++;
+		}
+
+		for(unsigned int sampleIndex2 = 0; sampleIndex2 != numberOfSamplesIdentifiers; sampleIndex2++){
+			//cout << "Sample 2 ID: " << samplesIdentifiers[sampleIndex2] << endl;
+			
+			double v2[numberOfSamplesIdentifiers];
+			SampleIdentifier sample2 = samplesIdentifiers[sampleIndex2];
+			int z=0;
+			for(map<SampleIdentifier, double>::iterator row2 = m_normalizedSimilarityMatrix[sample2].begin();
+					row2!= m_normalizedSimilarityMatrix[sample2].end(); row2++){
+				v2[z] = double(row2->second);
+				z++;
+			}
+			double inner_product = 0;
+                        for(unsigned int i = 0; i != numberOfSamplesIdentifiers; i++) {
+				double diff = (v1[i]-v2[i]);
+				inner_product += (diff*diff);
+			}
+			m_normalizedDistanceMatrix[sample1][sample2] = sqrt(inner_product);
+		}
+	}
 }
 
 
